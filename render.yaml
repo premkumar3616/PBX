@@ -2,7 +2,7 @@ services:
   - type: web
     name: rustpbx
     env: docker
-    dockerfilePath: ./Dockerfile.render
+    dockerfilePath: ./Dockerfile.render.fixed
     dockerContext: .
     plan: starter
     envVars:
