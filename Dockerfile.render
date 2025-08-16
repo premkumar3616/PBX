@@ -9,6 +9,10 @@ WORKDIR /build
 # Copy source code
 COPY . .
 
+# Debug: List what was copied
+RUN ls -la /build/
+RUN ls -la /build/static/ || echo "static directory not found"
+
 # Build the application with our specific features
 RUN cargo build --release --no-default-features --features "vad_webrtc" --bin rustpbx
 
@@ -28,10 +32,14 @@ WORKDIR /app
 
 # Copy binary and config
 COPY --from=rust-builder /build/target/release/rustpbx /app/rustpbx
-COPY config.docker.toml /app/config.toml
+COPY --from=rust-builder /build/config.docker.toml /app/config.toml
 
-# Copy static files
-COPY static/ /app/static/
+# Copy static files from build context
+COPY --from=rust-builder /build/static/ /app/static/
+
+# Debug: Verify static files were copied
+RUN ls -la /app/
+RUN ls -la /app/static/ || echo "static directory not found in app"
 
 # Create necessary directories
 RUN mkdir -p /tmp/recorders /tmp/mediacache /tmp/cdr

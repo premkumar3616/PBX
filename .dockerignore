@@ -5,7 +5,6 @@ README.md
 docs/
 examples/
 fixtures/
-# static/  # Commented out to include static files in Docker build
 *.md
 Cargo.lock
 
