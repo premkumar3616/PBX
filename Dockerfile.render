@@ -1,0 +1,49 @@
+FROM rust:bookworm AS rust-builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y libasound2-dev
+
+# Set working directory
+WORKDIR /build
+
+# Copy source code
+COPY . .
+
+# Build the application with our specific features
+RUN cargo build --release --no-default-features --features "vad_webrtc" --bin rustpbx
+
+# Production stage
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV RUST_LOG=info
+
+# Create app directory
+WORKDIR /app
+
+# Copy binary and config
+COPY --from=rust-builder /build/target/release/rustpbx /app/rustpbx
+COPY config.docker.toml /app/config.toml
+
+# Copy static files
+COPY static/ /app/static/
+
+# Create necessary directories
+RUN mkdir -p /tmp/recorders /tmp/mediacache /tmp/cdr
+
+# Expose only HTTP port for Render
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+# Start the application
+ENTRYPOINT ["/app/rustpbx"]
+CMD ["--conf", "/app/config.toml"]
+

@@ -349,6 +349,7 @@ async fn main() -> Result<()> {
     });
     let codec = match cli.codec.as_str() {
         "g722" => CodecType::G722,
+        #[cfg(feature = "opus")]
         "opus" => CodecType::Opus,
         "pcmu" => CodecType::PCMU,
         _ => return Err(anyhow::anyhow!("Invalid codec type")),

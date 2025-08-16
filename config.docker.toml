@@ -1,0 +1,39 @@
+# Docker production configuration for RustPBX
+http_addr = "0.0.0.0:8080"
+log_level = "info"
+stun_server = "stun.l.google.com:19302"
+recorder_path = "/tmp/recorders"
+media_cache_path = "/tmp/mediacache"
+
+[ua]
+addr = "0.0.0.0"
+udp_port = 13050
+
+[proxy]
+modules = ["acl", "auth", "registrar", "call"]
+addr = "0.0.0.0"
+udp_port = 15060
+registrar_expires = 60
+ws_handler = "/ws"
+
+# ACL rules - allow all for cloud deployment
+acl_rules = [
+    "allow all",
+]
+
+[proxy.media_proxy]
+mode = "auto"
+rtp_start_port = 20000
+rtp_end_port = 30000
+
+[proxy.user_backend]
+type = "memory"
+users = [
+    { username = "bob", password = "123456", realm = "127.0.0.1" },
+    { username = "alice", password = "123456", realm = "127.0.0.1" },
+]
+
+[callrecord]
+type = "local"
+root = "/tmp/cdr"
+
